@@ -23,7 +23,11 @@ public class Program
 
     public static async Task<int> Main(string[] args)
     {
-        Microsoft.Playwright.Program.Main(new string[] { "install", "--with-deps", "chromium" });
+        var exitCode = Microsoft.Playwright.Program.Main(new string[] { "install", "--with-deps chromium" });
+        if (exitCode != 0)
+        {
+            throw new Exception($"Playwright exited with code {exitCode}");
+        }
 
         Log.Logger = CreateLogger(args);
         try
