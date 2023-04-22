@@ -15,6 +15,10 @@ else
     echo "开始安装dotnet"
     rayInstallShell="https://ghproxy.com/https://raw.githubusercontent.com/RayWangQvQ/autoautoToolPro/main/qinglong/ray-dotnet-install.sh"
     {
+        echo "------尝试使用apt安装------"
+        apt-get update && apt-get install -y dotnet-sdk-6.0
+        dotnet --version && echo "安装成功"
+    } ||{
         echo "------尝试使用apk安装------"
         apk add dotnet6-sdk
         dotnet --version && echo "安装成功"
