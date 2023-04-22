@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WeReadTool": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
