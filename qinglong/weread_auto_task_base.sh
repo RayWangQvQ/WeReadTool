@@ -16,9 +16,12 @@ else
     rayInstallShell="https://ghproxy.com/https://raw.githubusercontent.com/RayWangQvQ/autoautoToolPro/main/qinglong/ray-dotnet-install.sh"
     {
         echo "------尝试使用apt安装------"
+        wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+        sudo dpkg -i packages-microsoft-prod.deb
+        rm packages-microsoft-prod.deb
         apt-get update && apt-get install -y dotnet-sdk-6.0
         dotnet --version && echo "安装成功"
-    } ||{
+    } || {
         echo "------尝试使用apk安装------"
         apk add dotnet6-sdk
         dotnet --version && echo "安装成功"
