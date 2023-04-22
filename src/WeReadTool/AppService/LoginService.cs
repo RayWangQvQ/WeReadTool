@@ -80,7 +80,7 @@ public class LoginService : ITransientDependency, IAutoTaskService
                 currentTry++;
                 _logger.LogInformation("[{time}]等待扫码...", currentTry);
 
-                Thread.Sleep(10000);
+                Thread.Sleep(20*1000);
 
                 var refreshLocator = page.GetByRole(AriaRole.Button, new() { Name = "点击刷新二维码" });
                 if (await refreshLocator.CountAsync() > 0)
@@ -115,6 +115,10 @@ public class LoginService : ITransientDependency, IAutoTaskService
         }
 
         // Save storage state into the file.
+        if (!Directory.Exists(".playwright/.auth"))
+        {
+            Directory.CreateDirectory(".playwright/.auth");
+        }
         await context.StorageStateAsync(new()
         {
             Path = ".playwright/.auth/state.json"
