@@ -8,7 +8,7 @@ using Microsoft.Playwright;
 
 namespace WeReadTool.AppService;
 
-[AutoTask("Login", "测试")]
+[AutoTask("Login", "扫码登录")]
 public class LoginService : ITransientDependency, IAutoTaskService
 {
     private readonly IConfiguration _configuration;
@@ -32,18 +32,23 @@ public class LoginService : ITransientDependency, IAutoTaskService
 
     public async Task DoAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("开始扫码登录");
         using var playwright = await Playwright.CreateAsync();
+
+        _logger.LogInformation("打开浏览器");
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
             Headless = false,
         });
 
         // Create a new context with the saved storage state.
+        _logger.LogInformation("加载上下文");
         var context = await browser.NewContextAsync(new()
         {
             StorageStatePath = ".playwright/.auth/state.json"
         });
 
+        _logger.LogInformation("初始化页面");
         var page = await context.NewPageAsync();
 
         _logger.LogInformation("打开微信读书首页");
