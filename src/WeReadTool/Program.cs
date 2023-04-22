@@ -86,13 +86,13 @@ public class Program
         var config = tempHost.Services.GetRequiredService<IConfiguration>();
 
         return new LoggerConfiguration()
-            .MinimumLevel.Information()
+            .MinimumLevel.Verbose()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
             .WriteTo.Async(c =>
             {
                 c.File($"Logs/{DateTime.Now.ToString("yyyy-MM-dd")}/{DateTime.Now.ToString("HH-mm-ss")}.txt",
-                    restrictedToMinimumLevel: LogEventLevel.Debug);
+                    restrictedToMinimumLevel: LogEventLevel.Verbose);
             })
             .WriteTo.Console()
             .WriteTo.PushPlusBatched(
