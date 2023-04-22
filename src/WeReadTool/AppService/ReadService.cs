@@ -28,7 +28,7 @@ namespace WeReadTool.AppService
             });
             var context = await browser.NewContextAsync(new()
             {
-                StorageStatePath = ".playwright/.auth/state.json"
+                StorageStatePath = File.Exists(".playwright/.auth/state.json") ? ".playwright/.auth/state.json" : null
             });
 
             var page = await context.NewPageAsync();

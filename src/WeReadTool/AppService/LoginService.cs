@@ -43,9 +43,9 @@ public class LoginService : ITransientDependency, IAutoTaskService
 
         // Create a new context with the saved storage state.
         _logger.LogInformation("加载上下文");
-        var context = await browser.NewContextAsync(new()
+        IBrowserContext context = await browser.NewContextAsync(new()
         {
-            StorageStatePath = ".playwright/.auth/state.json"
+            StorageStatePath = File.Exists(".playwright/.auth/state.json") ? ".playwright/.auth/state.json" : null
         });
 
         _logger.LogInformation("初始化页面");
