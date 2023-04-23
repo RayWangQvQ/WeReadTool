@@ -55,7 +55,7 @@ namespace WeReadTool.AppService
             await page.GetByRole(AriaRole.Link, new() { Name = "开始阅读本书" }).ClickAsync();
             Thread.Sleep(2000);
 
-            var maxTry = 2;
+            var maxTry = 20;
             var currentTry = 0;
             while (currentTry < maxTry)
             {
@@ -74,7 +74,7 @@ namespace WeReadTool.AppService
                 _logger.LogInformation("阅读{random}秒", random);
                 Thread.Sleep(random * 1000);
 
-                _logger.LogInformation("下一章");
+                _logger.LogInformation("下一章{newLinew}", Environment.NewLine);
                 await page.GetByRole(AriaRole.Button, new() { Name = "下一章" }).ClickAsync();
             }
         }
