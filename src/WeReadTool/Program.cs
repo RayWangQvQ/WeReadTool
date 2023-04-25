@@ -1,6 +1,4 @@
-﻿using WeReadTool.Agents;
-using WeReadTool.AppService;
-using WeReadTool.Configs;
+﻿using WeReadTool.Configs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Microsoft.Extensions.DependencyInjection;
@@ -135,6 +133,7 @@ public class Program
         #region config
         services.Configure<List<AccountOptions>>(config.GetSection("Accounts"));
         services.Configure<HttpClientCustomOptions>(config.GetSection("HttpCustomConfig"));
+        services.Configure<ReadOptions>(config.GetSection("ReadConfig"));
         #endregion
 
         #region Api
@@ -144,21 +143,6 @@ public class Program
         services.AddTransient<LogHttpMessageHandler>();
         services.AddTransient<ProxyHttpClientHandler>();
         services.AddTransient<CookieHttpClientHandler<TargetAccountInfo>>();
-        services
-            .AddRefitClient<IIkuuuApi>()
-            .ConfigureHttpClient(c =>
-            {
-                c.BaseAddress = new Uri("https://ikuuu.eu");
-
-                var ua = config["UserAgent"];
-                if (!string.IsNullOrWhiteSpace(ua))
-                    c.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
-            })
-            .AddHttpMessageHandler<DelayHttpMessageHandler>()
-            .AddHttpMessageHandler<LogHttpMessageHandler>()
-            .ConfigurePrimaryHttpMessageHandler<ProxyHttpClientHandler>()
-            .ConfigurePrimaryHttpMessageHandler<CookieHttpClientHandler<TargetAccountInfo>>()
-            ;
         #endregion
 
         services.Scan(scan => scan

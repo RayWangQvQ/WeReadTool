@@ -70,15 +70,14 @@ public class MyHostedService : IHostedService
         _hostApplicationLifetime.StopApplication();
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync(CancellationToken cancellationToken)
     {
+        return Task.CompletedTask;
     }
 
     private async Task DoTaskAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
-        //var helloWorldService = scope.ServiceProvider.GetRequiredService<HelloWorldService>();
-        //await helloWorldService.SayHelloAsync(cancellationToken);
 
         var run = _configuration["Run"];
 

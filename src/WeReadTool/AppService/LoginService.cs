@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using WeReadTool.Agents;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Ray.Infrastructure.AutoTask;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Playwright;
@@ -11,22 +8,13 @@ namespace WeReadTool.AppService;
 [AutoTask("Login", "扫码登录")]
 public class LoginService : ITransientDependency, IAutoTaskService
 {
-    private readonly IConfiguration _configuration;
-    private readonly IIkuuuApi _hostlocApi;
     private readonly ILogger<LoginService> _logger;
-    private readonly TargetAccountInfo _targetAccount;
 
     public LoginService(
-        IConfiguration configuration,
-        IIkuuuApi hostlocApi,
-        TargetAccountManager<TargetAccountInfo> targetAccountManager,
         ILogger<LoginService> logger
         )
     {
-        _configuration = configuration;
-        _hostlocApi = hostlocApi;
         _logger = logger;
-        _targetAccount = targetAccountManager.CurrentTargetAccount;
     }
 
 
