@@ -67,7 +67,7 @@ namespace WeReadTool.AppService
                 //Thread.Sleep(30 * 1000);
                 //await page.GetByRole(AriaRole.Button, new() { Name = "笔记" }).ClickAsync();
 
-                var random = new Random().Next(_readOptions.DurationPerChapter, _readOptions.DurationPerChapter + 30);
+                var random = new Random().Next(_readOptions.DurationPerChapter - 30, _readOptions.DurationPerChapter + 30);
                 _logger.LogInformation("阅读{random}秒", random);
                 Thread.Sleep(random * 1000);
 
