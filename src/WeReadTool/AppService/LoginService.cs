@@ -26,7 +26,11 @@ public class LoginService : ITransientDependency, IAutoTaskService
         _logger.LogInformation("打开浏览器");
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
+#if DEBUG
+            Headless = false,
+#else
             Headless = true,
+#endif
         });
 
         // Create a new context with the saved storage state.

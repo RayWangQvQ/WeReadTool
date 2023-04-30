@@ -23,7 +23,11 @@ namespace WeReadTool.AppService
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
             {
+#if DEBUG
+                Headless = false,
+#else
                 Headless = true,
+#endif
             });
             var context = await browser.NewContextAsync(new()
             {
