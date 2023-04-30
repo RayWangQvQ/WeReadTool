@@ -36,14 +36,23 @@ namespace WeReadTool.AppService
 
             var page = await context.NewPageAsync();
 
+            _logger.LogInformation("进入首页");
             await page.GotoAsync("https://weread.qq.com/");
 
+            _logger.LogInformation("查看书架");
             await page.GetByRole(AriaRole.Link, new() { Name = "查看我的书架" }).ClickAsync();
             Thread.Sleep(2000);
 
+            _logger.LogInformation("搜索");
             await page.GetByPlaceholder("搜索").ClickAsync();
             Thread.Sleep(2000);
 
+            await page.ScreenshotAsync(new()
+            {
+                Path = "screenshots/search.png",
+            });
+
+            _logger.LogInformation("输入鲁迅全集");
             await page.Locator("div").Filter(new() { HasText = "关闭取消" }).GetByPlaceholder("搜索").FillAsync("鲁迅全集");
             Thread.Sleep(2000);
 
