@@ -6,4 +6,4 @@
 cd ./src/WeReadTool
 
 export WeReadTool_Run=Read && \
-dotnet run
+dotnet run --configuration Release
