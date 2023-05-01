@@ -2,6 +2,13 @@
 using Ray.Infrastructure.AutoTask;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Playwright;
+using Microsoft.Extensions.FileProviders;
+using Newtonsoft.Json;
+using Ray.Infrastructure.QingLong;
+using Newtonsoft.Json.Linq;
+using System.Reflection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace WeReadTool.AppService;
 
@@ -9,12 +16,21 @@ namespace WeReadTool.AppService;
 public class LoginService : ITransientDependency, IAutoTaskService
 {
     private readonly ILogger<LoginService> _logger;
+    private readonly IQingLongApi _qingLongApi;
+    private readonly IHostEnvironment _hostEnvironment;
+    private readonly IConfiguration _config;
 
     public LoginService(
-        ILogger<LoginService> logger
+        ILogger<LoginService> logger,
+        IQingLongApi qingLongApi,
+        IHostEnvironment hostEnvironment,
+        IConfiguration config
         )
     {
         _logger = logger;
+        _qingLongApi = qingLongApi;
+        _hostEnvironment = hostEnvironment;
+        _config = config;
     }
 
 
@@ -35,16 +51,17 @@ public class LoginService : ITransientDependency, IAutoTaskService
 
         // Create a new context with the saved storage state.
         _logger.LogInformation("加载上下文");
-        IBrowserContext context = await browser.NewContextAsync(new()
-        {
-            StorageStatePath = File.Exists(".playwright/.auth/state.json") ? ".playwright/.auth/state.json" : null
-        });
+        IBrowserContext context = await browser.NewContextAsync();
 
         _logger.LogInformation("初始化页面");
         var page = await context.NewPageAsync();
 
         _logger.LogInformation("打开微信读书首页");
         await page.GotoAsync("https://weread.qq.com/");
+
+
+
+        var cks = await context.CookiesAsync();
 
         var loginButtonLocator = page.GetByRole(AriaRole.Button, new() { Name = "登录" });
 
@@ -111,9 +128,60 @@ public class LoginService : ITransientDependency, IAutoTaskService
         {
             Directory.CreateDirectory(".playwright/.auth");
         }
-        await context.StorageStateAsync(new()
+        var state = await context.StorageStateAsync();
+
+        if (_config["Platform"].ToLower() == "qinglong")
         {
-            Path = ".playwright/.auth/state.json"
-        });
+            var wr_gid = GetWrgid(state);
+            await QingLongHelper.SaveCookieListItemToQinLongAsync(_qingLongApi, "WeReadTool_AccountStates", state, wr_gid, _logger, cancellationToken);
+        }
+        else
+        {
+            SaveCookieToJsonFile(state);
+        }
+    }
+
+    public void SaveCookieToJsonFile(string stateJson)
+    {
+        //读取wr_gid
+        var wr_gid = GetWrgid(stateJson);
+
+        var pl = _hostEnvironment.ContentRootPath.Split("bin").ToList();
+        pl.RemoveAt(pl.Count-1);
+        var path = Path.Combine(string.Join("bin", pl), "account.json");
+
+        if (!File.Exists(path))
+        {
+            File.Create(path);
+            File.WriteAllText(path, "{\"AccountStates\":[]}");
+        }
+
+        var jsonStr = File.ReadAllText(path);
+
+        dynamic jsonObj = JsonConvert.DeserializeObject(jsonStr);
+        var accounts = (JArray)jsonObj["AccountStates"];
+
+        int index = accounts.IndexOf(accounts.FirstOrDefault(x => x.ToString().Contains(wr_gid)));
+
+        if (index >= 0)
+        {
+            jsonObj["AccountStates"][index] = stateJson;
+        }
+        else
+        {
+            jsonObj["AccountStates"].Add(stateJson);
+        }
+
+        string output = JsonConvert.SerializeObject(jsonObj, Formatting.Indented);
+        File.WriteAllText(path, output);
+    }
+
+    private string GetWrgid(string stateJson)
+    {
+        dynamic stateObj = JsonConvert.DeserializeObject(stateJson);
+        var ckList = (JArray)stateObj["cookies"];
+        var ck = ckList.FirstOrDefault(x => x["name"].ToString() == "wr_gid");
+        var wr_gid = ck["value"].ToString();
+        return wr_gid;
     }
 }

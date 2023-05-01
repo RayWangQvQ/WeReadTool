@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using Ray.Infrastructure.AutoTask;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WeReadTool.Configs;
 
 namespace WeReadTool.AppService
@@ -10,15 +13,31 @@ namespace WeReadTool.AppService
     public class ReadService : IAutoTaskService
     {
         private readonly ILogger<ReadService> _logger;
+        private readonly IConfiguration _config;
         private readonly ReadOptions _readOptions;
 
-        public ReadService(ILogger<ReadService> logger, IOptions<ReadOptions> readOptions)
+        public ReadService(
+            ILogger<ReadService> logger, 
+            IOptions<ReadOptions> readOptions,
+            IConfiguration config
+            )
         {
             _logger = logger;
+            _config = config;
             _readOptions = readOptions.Value;
         }
 
         public async Task DoAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            var accounts = _config.GetSection("AccountStates").Get<List<string>>();
+            for (int i = 0; i < accounts.Count; i++)
+            {
+                var account = accounts[i];
+                await DoForAccountAsync(account, cancellationToken);
+            }
+        }
+
+        private async Task DoForAccountAsync(string account, CancellationToken cancellationToken)
         {
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
@@ -29,10 +48,11 @@ namespace WeReadTool.AppService
                 Headless = true,
 #endif
             });
-            var context = await browser.NewContextAsync(new()
-            {
-                StorageStatePath = File.Exists(".playwright/.auth/state.json") ? ".playwright/.auth/state.json" : null
-            });
+            var context = await browser.NewContextAsync();
+
+            //加载状态
+            var cookies = (JArray)JsonConvert.DeserializeObject<JObject>(account)["cookies"];
+            await context.AddCookiesAsync(cookies.ToObject<List<Cookie>>());
 
             var page = await context.NewPageAsync();
 

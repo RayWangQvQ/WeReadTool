@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Ray.Infrastructure.AutoTask;
 using Ray.Infrastructure.Http;
+using Ray.Infrastructure.QingLong;
 using Ray.Serilog.Sinks.PushPlusBatched;
 using Ray.Serilog.Sinks.ServerChanBatched;
 using Ray.Serilog.Sinks.TelegramBatched;
@@ -43,6 +44,8 @@ public class Program
                             Prefix = EnvPrefix
                         }
                     );
+
+                    configurationBuilder.AddJsonFile("account.json", true);
                 })
                 .ConfigureServices(RegisterServices)
                 .ConfigureServices((hostBuilderContext, services) =>
@@ -143,6 +146,8 @@ public class Program
         services.AddTransient<LogHttpMessageHandler>();
         services.AddTransient<ProxyHttpClientHandler>();
         services.AddTransient<CookieHttpClientHandler<TargetAccountInfo>>();
+
+        services.AddQingLongRefitApi();
         #endregion
 
         services.Scan(scan => scan
