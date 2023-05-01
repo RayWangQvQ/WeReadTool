@@ -11,5 +11,7 @@ namespace WeReadTool.Configs
         public int ChapterCount { get; set; }
 
         public int DurationPerChapter { get; set; }
+
+        public string BookName { get; set; }
     }
 }

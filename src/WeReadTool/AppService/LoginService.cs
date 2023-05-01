@@ -64,7 +64,7 @@ public class LoginService : ITransientDependency, IAutoTaskService
             _logger.LogInformation(picBase64);
             _logger.LogInformation("请复制以上base64字符串到浏览器地址栏，查看并扫描二维码");
 
-            var maxTry = 3;
+            var maxTry = 5;
             var currentTry = 0;
             var loginSuccess = false;
             while (currentTry < maxTry)
