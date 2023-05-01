@@ -130,7 +130,7 @@ public class LoginService : ITransientDependency, IAutoTaskService
         }
         var state = await context.StorageStateAsync();
 
-        if (_config["Platform"].ToLower() == "qinglong")
+        if (_config["Platform"]?.ToLower() == "qinglong")
         {
             var wr_gid = GetWrgid(state);
             await QingLongHelper.SaveCookieListItemToQinLongAsync(_qingLongApi, "WeReadTool_AccountStates", state, wr_gid, _logger, cancellationToken);

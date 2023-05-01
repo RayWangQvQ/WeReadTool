@@ -48,5 +48,5 @@ auto_repo_dir="$(find $dir_repo -type d -iname $auto_repo | head -1)"
 echo -e "auto仓库目录: $auto_repo_dir\n"
 
 cd $auto_repo_dir
-export WeReadTool_PlatformType=QingLong
+export WeReadTool_Platform=QingLong
 export DOTNET_ENVIRONMENT=Production

@@ -397,4 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-/src/WeReadTool/account.json
+src/WeReadTool/account.json
