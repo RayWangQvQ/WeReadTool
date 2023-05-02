@@ -20,6 +20,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="ZXing.Net.Bindings.SkiaSharp" Version="0.16.13" />
   </ItemGroup>
 
 </Project>
