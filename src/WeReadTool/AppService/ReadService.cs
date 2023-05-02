@@ -94,7 +94,7 @@ namespace WeReadTool.AppService
                 currentTry++;
                 _logger.LogInformation("阅读第{count}个章节", currentTry);
 
-                var random = new Random().Next(_readOptions.DurationPerChapter - 30, _readOptions.DurationPerChapter + 40);
+                var random = new Random().Next(_readOptions.DurationPerChapter - 30, _readOptions.DurationPerChapter + 30);
                 _logger.LogInformation("开始阅读{min}分{sec}秒", random / 60, random % 60);
                 Thread.Sleep(random * 1000);
 
