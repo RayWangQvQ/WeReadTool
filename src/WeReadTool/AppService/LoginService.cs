@@ -133,22 +133,26 @@ public class LoginService : ITransientDependency, IAutoTaskService
     private void ShowQrCode(string base64Str)
     {
         var text = Ray.Infrastructure.BarCode.BarCodeHelper
-            .DecodeByBase64Str(base64Str.Replace("data:image/png;base64,", ""))
+            .DecodeByBase64Str(base64Str)
             .ToString();
-        var skBitmap = Ray.Infrastructure.BarCode.BarCodeHelper.Encode(text);//重新生成，压缩下
+        var img = Ray.Infrastructure.BarCode.BarCodeHelper.EncodeByImageSharp(text,optionsAction: op =>
+        {
+            op.Width = 20;
+            op.Height = 20;
+        });//重新生成，压缩下
 
         //打印二维码
         if (_config["Platform"]?.ToLower() == "qinglong")
         {
-            Ray.Infrastructure.BarCode.BarCodeHelper.PrintSmallQrCode(skBitmap,
+            Ray.Infrastructure.BarCode.BarCodeHelper.PrintSmallQrCode(img,
                 onRowPrintProcess: s => _logger.LogInformation(s));
         }
         else
         {
-            Ray.Infrastructure.BarCode.BarCodeHelper.PrintQrCode(skBitmap,
+            Ray.Infrastructure.BarCode.BarCodeHelper.PrintQrCode(img,
                 onRowPrintProcess: s => _logger.LogInformation(s));
         }
-        skBitmap.Dispose();
+        img.Dispose();
         _logger.LogInformation("若显示异常，请访问在线版扫描：{qrcode}", GetOnlinePic(text));
     }
 
