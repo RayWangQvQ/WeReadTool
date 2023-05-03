@@ -2,11 +2,9 @@
 using Ray.Infrastructure.AutoTask;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Playwright;
-using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json;
 using Ray.Infrastructure.QingLong;
 using Newtonsoft.Json.Linq;
-using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
@@ -59,28 +57,22 @@ public class LoginService : ITransientDependency, IAutoTaskService
         _logger.LogInformation("打开微信读书首页");
         await page.GotoAsync("https://weread.qq.com/");
 
-
-
-        var cks = await context.CookiesAsync();
-
         var loginButtonLocator = page.GetByRole(AriaRole.Button, new() { Name = "登录" });
 
         if (await loginButtonLocator.CountAsync() > 0)
         {
             _logger.LogInformation("检测到未登录，或登录过期，开始扫码登录");
-
             await loginButtonLocator.ClickAsync();
-
-            await page.ScreenshotAsync(new()
-            {
-                Path = "screenshots/unlogin.png",
-            });
-
             var qrCodeLocator = page.GetByAltText("扫码登录");
-            var picBase64 = await qrCodeLocator.GetAttributeAsync("src");
-            _logger.LogInformation(picBase64);
-            _logger.LogInformation("请复制以上base64字符串到浏览器地址栏，查看并扫描二维码");
 
+            //识别二维码
+            var picBase64 = await qrCodeLocator.GetAttributeAsync("src");
+            //_logger.LogInformation(picBase64);
+            //_logger.LogInformation("请复制以上base64字符串到浏览器地址栏，查看并扫描二维码");
+            ShowQrCode(picBase64);
+
+
+            //扫描
             var maxTry = 5;
             var currentTry = 0;
             var loginSuccess = false;
@@ -89,7 +81,7 @@ public class LoginService : ITransientDependency, IAutoTaskService
                 currentTry++;
                 _logger.LogInformation("[{time}]等待扫码...", currentTry);
 
-                Thread.Sleep(20*1000);
+                Thread.Sleep(20 * 1000);
 
                 var refreshLocator = page.GetByRole(AriaRole.Button, new() { Name = "点击刷新二维码" });
                 if (await refreshLocator.CountAsync() > 0)
@@ -99,7 +91,8 @@ public class LoginService : ITransientDependency, IAutoTaskService
                     qrCodeLocator = page.GetByAltText("扫码登录");
                     picBase64 = await qrCodeLocator.GetAttributeAsync("src");
                     _logger.LogInformation("二维码已刷新：");
-                    _logger.LogInformation(picBase64);
+                    //_logger.LogInformation(picBase64);
+                    ShowQrCode(picBase64);
 
                     continue;
                 }
@@ -124,10 +117,6 @@ public class LoginService : ITransientDependency, IAutoTaskService
         }
 
         // Save storage state into the file.
-        if (!Directory.Exists(".playwright/.auth"))
-        {
-            Directory.CreateDirectory(".playwright/.auth");
-        }
         var state = await context.StorageStateAsync();
 
         if (_config["Platform"]?.ToLower() == "qinglong")
@@ -141,13 +130,35 @@ public class LoginService : ITransientDependency, IAutoTaskService
         }
     }
 
-    public void SaveCookieToJsonFile(string stateJson)
+    private void ShowQrCode(string base64Str)
+    {
+        var text = Ray.Infrastructure.BarCode.BarCodeHelper
+            .DecodeByBase64Str(base64Str.Replace("data:image/png;base64,", ""))
+            .ToString();
+        var skBitmap = Ray.Infrastructure.BarCode.BarCodeHelper.Encode(text);//重新生成，压缩下
+
+        //打印二维码
+        if (_config["Platform"]?.ToLower() == "qinglong")
+        {
+            Ray.Infrastructure.BarCode.BarCodeHelper.PrintSmallQrCode(skBitmap,
+                onRowPrintProcess: s => _logger.LogInformation(s));
+        }
+        else
+        {
+            Ray.Infrastructure.BarCode.BarCodeHelper.PrintQrCode(skBitmap,
+                onRowPrintProcess: s => _logger.LogInformation(s));
+        }
+        skBitmap.Dispose();
+        _logger.LogInformation("若显示异常，请访问在线版扫描：{qrcode}", GetOnlinePic(text));
+    }
+
+    private void SaveCookieToJsonFile(string stateJson)
     {
         //读取wr_gid
         var wr_gid = GetWrgid(stateJson);
 
         var pl = _hostEnvironment.ContentRootPath.Split("bin").ToList();
-        pl.RemoveAt(pl.Count-1);
+        pl.RemoveAt(pl.Count - 1);
         var path = Path.Combine(string.Join("bin", pl), "account.json");
 
         if (!File.Exists(path))
@@ -183,5 +194,11 @@ public class LoginService : ITransientDependency, IAutoTaskService
         var ck = ckList.FirstOrDefault(x => x["name"].ToString() == "wr_gid");
         var wr_gid = ck["value"].ToString();
         return wr_gid;
+    }
+
+    private string GetOnlinePic(string str)
+    {
+        var encode = System.Web.HttpUtility.UrlEncode(str); ;
+        return $"https://tool.lu/qrcode/basic.html?text={encode}";
     }
 }

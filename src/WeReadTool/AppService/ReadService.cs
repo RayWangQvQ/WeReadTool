@@ -100,6 +100,7 @@ namespace WeReadTool.AppService
 
                 _logger.LogInformation("下一章{newLinew}", Environment.NewLine);
                 await page.GetByRole(AriaRole.Button, new() { Name = "下一章" }).ClickAsync();
+                //todo:需要考虑没有下一章的情况
             }
         }
     }
