@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WeReadTool.Configs;
 using System.Security.Principal;
+using System.Text.RegularExpressions;
 
 namespace WeReadTool.AppService
 {
@@ -106,7 +107,7 @@ namespace WeReadTool.AppService
             Thread.Sleep(2000);
 
             //开始阅读
-            await page.GetByRole(AriaRole.Link, new() { Name = "开始阅读本书" }).ClickAsync();
+            await page.GetByRole(AriaRole.Link, new() { NameRegex = new Regex("开始阅读.*") }).ClickAsync();
             Thread.Sleep(2000);
 
             //循环翻页（翻章）
