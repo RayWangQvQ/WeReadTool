@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WeReadTool.Configs;
+using System.Security.Principal;
 
 namespace WeReadTool.AppService
 {
@@ -50,12 +51,34 @@ namespace WeReadTool.AppService
             });
             var context = await browser.NewContextAsync();
 
+            await context.Tracing.StartAsync(new()
+            {
+                Screenshots = true,
+                Snapshots = true,
+                Sources = true
+            });
+
             //加载状态
             var cookies = (JArray)JsonConvert.DeserializeObject<JObject>(account)["cookies"];
             await context.AddCookiesAsync(cookies.ToObject<List<Cookie>>());
 
             var page = await context.NewPageAsync();
 
+            try
+            {
+                await ReadAsync(page);
+            }
+            finally
+            {
+                await context.Tracing.StopAsync(new()
+                {
+                    Path = "trace.zip"
+                });
+            }
+        }
+
+        private async Task ReadAsync(IPage page)
+        {
             _logger.LogInformation("进入首页");
             await page.GotoAsync("https://weread.qq.com/");
 
