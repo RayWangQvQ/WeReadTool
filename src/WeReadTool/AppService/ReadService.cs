@@ -123,7 +123,7 @@ namespace WeReadTool.AppService
                 Thread.Sleep(random * 1000);
 
                 _logger.LogInformation("下一章{newLinew}", Environment.NewLine);
-                await page.GetByRole(AriaRole.Button, new() { Name = "下一章" }).ClickAsync();
+                await page.GetByRole(AriaRole.Button, new() { NameRegex =new Regex("下一[章页]") }).ClickAsync();
                 //todo:需要考虑没有下一章的情况
             }
         }
